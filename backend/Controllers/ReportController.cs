@@ -2,6 +2,7 @@ using backend.Models.DTOs;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ClosedXML.Excel;
 
 namespace backend.Controllers
 {
@@ -91,6 +92,77 @@ namespace backend.Controllers
         {
             var report = await _reportService.GenerateRevenueByPaymentMethodReportAsync(startDate, endDate);
             return File(report.FileContent, report.ContentType, report.FileName);
+        }
+
+        [HttpGet("sales/excel")]
+        public async Task<IActionResult> GetSalesReportExcel([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var report = await _reportService.GenerateSalesReportAsync(startDate, endDate);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("top-products/excel")]
+        public async Task<IActionResult> GetTopProductsReportExcel(
+            [FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] int topN = 20)
+        {
+            var report = await _reportService.GenerateTopProductsReportAsync(startDate, endDate, topN);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("inventory/excel")]
+        public async Task<IActionResult> GetInventoryReportExcel()
+        {
+            var report = await _reportService.GenerateInventoryReportAsync();
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("customer-orders/excel")]
+        public async Task<IActionResult> GetCustomerOrdersReportExcel([FromQuery] int customerId)
+        {
+            var report = await _reportService.GenerateCustomerOrdersReportAsync(customerId);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("supplier-performance/excel")]
+        public async Task<IActionResult> GetSupplierPerformanceReportExcel()
+        {
+            var report = await _reportService.GenerateSupplierPerformanceReportAsync();
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("category-sales/excel")]
+        public async Task<IActionResult> GetCategorySalesReportExcel([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var report = await _reportService.GenerateCategorySalesReportAsync(startDate, endDate);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("monthly-trends/excel")]
+        public async Task<IActionResult> GetMonthlyTrendsReportExcel([FromQuery] int year)
+        {
+            var report = await _reportService.GenerateMonthlyTrendsReportAsync(year);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("low-stock/excel")]
+        public async Task<IActionResult> GetLowStockReportExcel([FromQuery] int threshold = 10)
+        {
+            var report = await _reportService.GenerateLowStockReportAsync(threshold);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("order-fulfillment/excel")]
+        public async Task<IActionResult> GetOrderFulfillmentReportExcel([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var report = await _reportService.GenerateOrderFulfillmentReportAsync(startDate, endDate);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
+        }
+
+        [HttpGet("revenue-by-payment/excel")]
+        public async Task<IActionResult> GetRevenueByPaymentMethodReportExcel([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var report = await _reportService.GenerateRevenueByPaymentMethodReportAsync(startDate, endDate);
+            return File(report.FileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName.Replace(".pdf", ".xlsx"));
         }
     }
 }

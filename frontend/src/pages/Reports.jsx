@@ -4,7 +4,7 @@ import DateRangePicker from '../components/common/DateRangePicker';
 import { customersAPI } from '../api/customers';
 import { reportsAPI } from '../api/reports';
 import toast from 'react-hot-toast';
-import { FileText, Download, Eye, BarChart3 } from 'lucide-react';
+import { FileText, Download, Eye, BarChart3, FileSpreadsheet } from 'lucide-react';
 import { saveAs } from 'file-saver';
 
 export default function Reports() {
@@ -90,6 +90,40 @@ export default function Reports() {
     setSelectedParams((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleExcelExport = async () => {
+    if (!reportType) {
+      toast.error('Please select a report type');
+      return;
+    }
+    setGenerating(true);
+    try {
+      const params = {};
+      if (selectedParams.startDate) params.startDate = selectedParams.startDate;
+      if (selectedParams.endDate) params.endDate = selectedParams.endDate;
+      if (selectedParams.topN) params.topN = parseInt(selectedParams.topN);
+      if (selectedParams.customerId) params.customerId = parseInt(selectedParams.customerId);
+      if (selectedParams.year) params.year = parseInt(selectedParams.year);
+      if (selectedParams.threshold) params.threshold = parseInt(selectedParams.threshold);
+
+      const response = await reportsAPI.generateExcel(reportType, params);
+
+      const contentDisposition = response.headers?.['content-disposition'];
+      let filename = `${reportType}-report.xlsx`;
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match) filename = match[1].replace(/['"]/g, '');
+      }
+
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, filename);
+      toast.success('Excel report downloaded successfully');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to generate Excel report');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -99,7 +133,7 @@ export default function Reports() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-5">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-5 overflow-hidden">
             <h3 className="text-sm font-semibold text-gray-800 dark:text-white mb-4">Report Parameters</h3>
             <div className="space-y-4">
               <div className="space-y-1">
@@ -195,6 +229,18 @@ export default function Reports() {
                     <Download size={16} />
                   )}
                   {generating ? 'Generating...' : 'Download PDF'}
+                </button>
+                <button
+                  onClick={handleExcelExport}
+                  disabled={generating || !reportType}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 border border-green-600 transition disabled:opacity-50"
+                >
+                  {generating ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin" />
+                  ) : (
+                    <FileSpreadsheet size={16} />
+                  )}
+                  {generating ? 'Generating...' : 'Export Excel'}
                 </button>
                 <button
                   onClick={handlePrint}

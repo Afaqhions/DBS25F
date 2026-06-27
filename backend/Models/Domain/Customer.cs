@@ -10,8 +10,10 @@ namespace backend.Models.Domain
         public DateTime DateOfBirth { get; set; }
         public int LoyaltyPoints { get; set; } = 0;
         public bool IsDeleted { get; set; } = false;
+        public int? CountryId { get; set; }
 
         public User User { get; set; } = null!;
+        public Country? Country { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }

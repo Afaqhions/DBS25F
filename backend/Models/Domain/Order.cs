@@ -11,8 +11,10 @@ namespace backend.Models.Domain
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
         public string PaymentMethod { get; set; } = string.Empty;
         public bool IsDeleted { get; set; } = false;
+        public int? MerchantId { get; set; }
 
         public Customer Customer { get; set; } = null!;
+        public Merchant? Merchant { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public Payment? Payment { get; set; }
     }

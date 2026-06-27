@@ -21,6 +21,11 @@ namespace backend.Controllers
         {
             var query = _context.Products.Include(p => p.Category).AsQueryable();
 
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                var search = filter.Search.ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(search) || p.Description.ToLower().Contains(search));
+            }
             if (filter.CategoryId.HasValue)
                 query = query.Where(p => p.CategoryId == filter.CategoryId);
             if (filter.MinPrice.HasValue)
@@ -101,7 +106,7 @@ namespace backend.Controllers
                 Price = dto.Price,
                 StockQuantity = dto.StockQuantity,
                 CategoryId = dto.CategoryId,
-                Status = "Active",
+                Status = dto.StockQuantity >= 50 ? "Active" : "Inactive",
                 CreatedDate = DateTime.UtcNow
             };
 
@@ -148,7 +153,7 @@ namespace backend.Controllers
             product.Price = dto.Price;
             product.StockQuantity = dto.StockQuantity;
             product.CategoryId = dto.CategoryId;
-            product.Status = dto.Status;
+            product.Status = dto.StockQuantity >= 50 ? "Active" : "Inactive";
 
             if (dto.MerchantIds != null)
             {

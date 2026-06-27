@@ -10,6 +10,8 @@ namespace backend.Models.DTOs
         public int LoyaltyPoints { get; set; }
         public string Email { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
+        public int? CountryId { get; set; }
+        public string CountryName { get; set; } = string.Empty;
     }
 
     public class CreateCustomerDto
@@ -21,6 +23,7 @@ namespace backend.Models.DTOs
         public string Phone { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
+        public int? CountryId { get; set; }
     }
 
     public class UpdateCustomerDto
@@ -29,5 +32,6 @@ namespace backend.Models.DTOs
         public string Phone { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
+        public int? CountryId { get; set; }
     }
 }

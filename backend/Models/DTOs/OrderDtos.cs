@@ -11,6 +11,8 @@ namespace backend.Models.DTOs
         public decimal TotalAmount { get; set; }
         public string Status { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;
+        public int? MerchantId { get; set; }
+        public string MerchantName { get; set; } = string.Empty;
         public List<OrderItemDto> Items { get; set; } = new();
     }
 
@@ -27,6 +29,7 @@ namespace backend.Models.DTOs
     {
         public int CustomerId { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
+        public int? MerchantId { get; set; }
         public List<CreateOrderItemDto> Items { get; set; } = new();
     }
 

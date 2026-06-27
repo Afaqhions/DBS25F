@@ -23,7 +23,7 @@ export default function ProductForm({ defaultValues, onSubmit, loading, onCancel
       .catch(() => setSuppliers([]));
   }, []);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: '',
@@ -34,6 +34,9 @@ export default function ProductForm({ defaultValues, onSubmit, loading, onCancel
       ...defaultValues,
     },
   });
+
+  const stockQuantity = watch('stockQuantity');
+  const autoStatus = parseInt(stockQuantity) >= 50 ? 'Active' : 'Inactive';
 
   const panels = [
     {
@@ -72,11 +75,20 @@ export default function ProductForm({ defaultValues, onSubmit, loading, onCancel
       id: 'inventory',
       title: 'Inventory',
       fields: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Stock Quantity *</label>
-            <input type="number" min="0" {...register('stockQuantity')} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:border-primary outline-none transition" />
-            {errors.stockQuantity && <p className="text-xs text-red-500">{errors.stockQuantity.message}</p>}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Stock Quantity *</label>
+              <input type="number" min="0" {...register('stockQuantity')} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:border-primary outline-none transition" />
+              {errors.stockQuantity && <p className="text-xs text-red-500">{errors.stockQuantity.message}</p>}
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Auto Status</label>
+              <div className={`flex items-center gap-2 px-3 py-2 border text-sm font-medium ${autoStatus === 'Active' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'}`}>
+                {autoStatus === 'Active' ? 'Available (A)' : 'Not Available (NA)'}
+                <span className="text-xs opacity-70">stock {'>= '}{autoStatus === 'Active' ? '50' : '< 50'}</span>
+              </div>
+            </div>
           </div>
         </div>
       ),

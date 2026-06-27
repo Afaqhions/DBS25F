@@ -1,9 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Package, ShoppingCart, Truck, BarChart3, Settings, X, Tag } from 'lucide-react';
+import { LayoutDashboard, Users, Package, ShoppingCart, Truck, BarChart3, Settings, X, Tag, Globe, Store } from 'lucide-react';
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard },
   { label: 'Customers', path: '/customers', icon: Users },
+  { label: 'Countries', path: '/countries', icon: Globe },
+  { label: 'Merchants', path: '/merchants', icon: Store },
   { label: 'Categories', path: '/categories', icon: Tag },
   { label: 'Products', path: '/products', icon: Package },
   { label: 'Orders', path: '/orders', icon: ShoppingCart },

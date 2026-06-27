@@ -18,12 +18,29 @@ namespace backend.Controllers
         public CustomersController(AppDbContext context) => _context = context;
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<PagedResult<CustomerDto>>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponse<PagedResult<CustomerDto>>>> GetAll(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] string? sortColumn = null, [FromQuery] string? sortDirection = null)
         {
             var query = _context.Customers.Include(c => c.User).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(c => c.FullName.ToLower().Contains(s) || c.User.Email.ToLower().Contains(s) || c.Phone.Contains(s));
+            }
+
+            query = sortColumn?.ToLower() switch
+            {
+                "fullname" => sortDirection == "desc" ? query.OrderByDescending(c => c.FullName) : query.OrderBy(c => c.FullName),
+                "email" => sortDirection == "desc" ? query.OrderByDescending(c => c.User.Email) : query.OrderBy(c => c.User.Email),
+                "phone" => sortDirection == "desc" ? query.OrderByDescending(c => c.Phone) : query.OrderBy(c => c.Phone),
+                _ => sortDirection == "desc" ? query.OrderByDescending(c => c.FullName) : query.OrderBy(c => c.FullName)
+            };
+
             var totalCount = await query.CountAsync();
             var items = await query
-                .OrderBy(c => c.FullName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .Select(c => new CustomerDto
@@ -35,7 +52,9 @@ namespace backend.Controllers
                     DateOfBirth = c.DateOfBirth,
                     LoyaltyPoints = c.LoyaltyPoints,
                     Email = c.User.Email,
-                    Username = c.User.Username
+                    Username = c.User.Username,
+                    CountryId = c.CountryId,
+                    CountryName = c.Country != null ? c.Country.Name : ""
                 })
                 .ToListAsync();
 
@@ -63,7 +82,9 @@ namespace backend.Controllers
                 DateOfBirth = customer.DateOfBirth,
                 LoyaltyPoints = customer.LoyaltyPoints,
                 Email = customer.User.Email,
-                Username = customer.User.Username
+                Username = customer.User.Username,
+                CountryId = customer.CountryId,
+                CountryName = customer.Country != null ? customer.Country.Name : ""
             }));
         }
 
@@ -91,7 +112,8 @@ namespace backend.Controllers
                 FullName = dto.FullName,
                 Phone = dto.Phone,
                 Address = dto.Address,
-                DateOfBirth = dto.DateOfBirth
+                DateOfBirth = dto.DateOfBirth,
+                CountryId = dto.CountryId
             };
 
             _context.Customers.Add(customer);
@@ -121,6 +143,7 @@ namespace backend.Controllers
             customer.Phone = dto.Phone;
             customer.Address = dto.Address;
             customer.DateOfBirth = dto.DateOfBirth;
+            customer.CountryId = dto.CountryId;
 
             await _context.SaveChangesAsync();
 

@@ -7,6 +7,12 @@ export const reportsAPI = {
       responseType: 'blob',
     }),
 
+  generateExcel: (reportType, params) =>
+    client.get(`/reports/${reportType}/excel`, {
+      params,
+      responseType: 'blob',
+    }),
+
   getSalesSummary: (params) =>
     client.get('/reports/sales-summary', { params }),
 

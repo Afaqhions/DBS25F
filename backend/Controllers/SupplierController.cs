@@ -18,9 +18,18 @@ namespace backend.Controllers
         public SuppliersController(AppDbContext context) => _context = context;
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<PagedResult<SupplierDto>>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponse<PagedResult<SupplierDto>>>> GetAll(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null)
         {
             var query = _context.Suppliers.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(sup => sup.CompanyName.ToLower().Contains(s) || sup.ContactPerson.ToLower().Contains(s) || sup.Email.ToLower().Contains(s));
+            }
+
             var totalCount = await query.CountAsync();
             var items = await query
                 .OrderBy(s => s.CompanyName)

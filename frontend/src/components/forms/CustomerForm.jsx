@@ -1,11 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { customerSchema } from '../../utils/validators';
+import { countriesAPI } from '../../api/countries';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function CustomerForm({ defaultValues, onSubmit, loading, onCancel }) {
   const [activePanel, setActivePanel] = useState('personal');
+  const [countries, setCountries] = useState([]);
+
+  useEffect(() => {
+    countriesAPI.getAll()
+      .then((res) => {
+        const data = res.data.data || res.data;
+        setCountries(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {});
+  }, []);
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(customerSchema),
@@ -17,6 +28,7 @@ export default function CustomerForm({ defaultValues, onSubmit, loading, onCance
       gender: '',
       isActive: true,
       address: '',
+      countryId: '',
       ...defaultValues,
     },
   });
@@ -81,6 +93,15 @@ export default function CustomerForm({ defaultValues, onSubmit, loading, onCance
       title: 'Address & Preferences',
       fields: (
         <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
+            <select {...register('countryId')} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:border-primary outline-none transition">
+              <option value="">-- Select Country --</option>
+              {countries.map((c) => (
+                <option key={c.countryId} value={c.countryId}>{c.name} ({c.code})</option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
             <textarea {...register('address')} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:border-primary outline-none transition resize-none" />

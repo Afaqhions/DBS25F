@@ -57,6 +57,8 @@ namespace backend.Data
                 e.Property(c => c.Address).HasMaxLength(500);
                 e.HasOne(c => c.User).WithOne(u => u.Customer).HasForeignKey<Customer>(c => c.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(c => c.Country).WithMany().HasForeignKey(c => c.CountryId)
+                    .OnDelete(DeleteBehavior.SetNull);
                 e.HasQueryFilter(c => !c.IsDeleted);
 
             });
@@ -122,6 +124,8 @@ namespace backend.Data
                 e.Property(o => o.OrderDate).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
                 e.HasOne(o => o.Customer).WithMany(c => c.Orders).HasForeignKey(o => o.CustomerId)
                     .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(o => o.Merchant).WithMany().HasForeignKey(o => o.MerchantId)
+                    .OnDelete(DeleteBehavior.SetNull);
                 e.HasIndex(o => o.OrderDate);
                 e.HasQueryFilter(o => !o.IsDeleted);
             });

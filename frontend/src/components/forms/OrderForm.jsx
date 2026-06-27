@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { orderSchema } from '../../utils/validators';
 import { customersAPI } from '../../api/customers';
 import { productsAPI } from '../../api/products';
+import { merchantsAPI } from '../../api/merchants';
 import { formatCurrency } from '../../utils/formatters';
 import { PAYMENT_METHODS } from '../../utils/constants';
 import { ChevronDown, ChevronUp, Trash2, Search } from 'lucide-react';
@@ -13,6 +14,7 @@ export default function OrderForm({ onSubmit, loading, onCancel }) {
   const [activePanel, setActivePanel] = useState('customer');
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [merchants, setMerchants] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
   const [productSearch, setProductSearch] = useState('');
 
@@ -20,11 +22,14 @@ export default function OrderForm({ onSubmit, loading, onCancel }) {
     Promise.all([
       customersAPI.getAll({ page: 1, pageSize: 100 }),
       productsAPI.getAll({ page: 1, pageSize: 200 }),
-    ]).then(([custRes, prodRes]) => {
+      merchantsAPI.getAll(),
+    ]).then(([custRes, prodRes, merchRes]) => {
       const custData = custRes.data.data?.items || custRes.data.items || custRes.data || [];
       const prodData = prodRes.data.data?.items || prodRes.data.items || prodRes.data || [];
+      const merchData = merchRes.data.data || merchRes.data;
       setCustomers(custData);
       setProducts(prodData);
+      setMerchants(Array.isArray(merchData) ? merchData : []);
     }).catch(() => {});
   }, []);
 
@@ -32,6 +37,7 @@ export default function OrderForm({ onSubmit, loading, onCancel }) {
     resolver: zodResolver(orderSchema),
     defaultValues: {
       customerId: '',
+      merchantId: '',
       paymentMethod: 'Cash',
       items: [],
       remarks: '',
@@ -81,7 +87,9 @@ export default function OrderForm({ onSubmit, loading, onCancel }) {
       return;
     }
     onSubmit({
-      ...data,
+      customerId: parseInt(data.customerId),
+      merchantId: data.merchantId ? parseInt(data.merchantId) : null,
+      paymentMethod: data.paymentMethod,
       items: orderItems.map(({ productId, quantity }) => ({ productId: parseInt(productId), quantity })),
     });
   };
@@ -101,6 +109,15 @@ export default function OrderForm({ onSubmit, loading, onCancel }) {
               ))}
             </select>
             {errors.customerId && <p className="text-xs text-red-500">{errors.customerId.message}</p>}
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Merchant</label>
+            <select {...register('merchantId')} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:border-primary outline-none transition">
+              <option value="">-- Select Merchant (Optional) --</option>
+              {merchants.filter((m) => m.isActive).map((m) => (
+                <option key={m.merchantId} value={m.merchantId}>{m.companyName} ({m.countryName})</option>
+              ))}
+            </select>
           </div>
         </div>
       ),

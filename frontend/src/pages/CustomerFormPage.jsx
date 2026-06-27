@@ -27,6 +27,7 @@ export default function CustomerFormPage() {
             gender: data.gender || '',
             isActive: data.isActive ?? true,
             address: data.address || '',
+            countryId: data.countryId?.toString() || '',
             id: data.customerId,
           });
         })
@@ -47,6 +48,7 @@ export default function CustomerFormPage() {
         phone: data.phone || null,
         dateOfBirth: data.dateOfBirth || undefined,
         address: data.address || null,
+        countryId: data.countryId ? parseInt(data.countryId) : null,
       };
 
       if (isEdit) {

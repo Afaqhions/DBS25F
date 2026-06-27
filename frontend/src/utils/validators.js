@@ -6,20 +6,6 @@ export const loginSchema = z.object({
   rememberMe: z.boolean().optional(),
 });
 
-export const registerSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters').max(50),
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-  phone: z.string().regex(/^\+?[\d\s\-\(\)]{7,20}$/, 'Invalid phone number').optional().or(z.literal('')),
-  address: z.string().max(500).optional().or(z.literal('')),
-  dateOfBirth: z.string().optional().or(z.literal('')),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
-
 export const customerSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Invalid email address'),
@@ -28,6 +14,22 @@ export const customerSchema = z.object({
   gender: z.string().optional().or(z.literal('')),
   isActive: z.boolean().optional(),
   address: z.string().max(500).optional().or(z.literal('')),
+  countryId: z.string().optional().or(z.literal('')),
+});
+
+export const countrySchema = z.object({
+  name: z.string().min(2, 'Country name must be at least 2 characters').max(100),
+  code: z.string().min(2, 'Country code must be at least 2 characters').max(10),
+  continent: z.string().max(50).optional().or(z.literal('')),
+  currency: z.string().min(1, 'Currency is required').max(50),
+});
+
+export const merchantSchema = z.object({
+  companyName: z.string().min(2, 'Company name must be at least 2 characters').max(200),
+  contactPerson: z.string().max(100).optional().or(z.literal('')),
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  phone: z.string().regex(/^\+?[\d\s\-\(\)]{7,20}$/, 'Invalid phone number').optional().or(z.literal('')),
+  countryId: z.string().min(1, 'Country is required'),
 });
 
 export const productSchema = z.object({

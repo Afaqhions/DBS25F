@@ -6,10 +6,11 @@ import { Toaster } from 'react-hot-toast';
 import Layout from './components/common/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import CustomerFormPage from './pages/CustomerFormPage';
+import Countries from './pages/Countries';
+import Merchants from './pages/Merchants';
 import Categories from './pages/Categories';
 import Products from './pages/Products';
 import ProductFormPage from './pages/ProductFormPage';
@@ -43,13 +44,14 @@ export default function App() {
             />
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/customers" element={<Customers />} />
                   <Route path="/customers/add" element={<CustomerFormPage />} />
                   <Route path="/customers/edit/:id" element={<CustomerFormPage />} />
+                  <Route path="/countries" element={<Countries />} />
+                  <Route path="/merchants" element={<Merchants />} />
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/add" element={<ProductFormPage />} />

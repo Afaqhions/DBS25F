@@ -81,6 +81,7 @@ namespace backend.Services
                     OrderDate = DateTime.UtcNow,
                     Status = OrderStatus.Pending,
                     PaymentMethod = dto.PaymentMethod,
+                    MerchantId = dto.MerchantId,
                     TotalAmount = 0
                 };
 
@@ -217,6 +218,8 @@ namespace backend.Services
             TotalAmount = order.TotalAmount,
             Status = order.Status.ToString(),
             PaymentMethod = order.PaymentMethod,
+            MerchantId = order.MerchantId,
+            MerchantName = order.Merchant?.CompanyName ?? "",
             Items = order.OrderItems.Select(oi => new OrderItemDto
             {
                 ProductId = oi.ProductId,

@@ -4,10 +4,11 @@ import StatsPanel from '../components/panels/StatsPanel';
 import ChartPanel from '../components/panels/ChartPanel';
 import DashboardPanel from '../components/panels/DashboardPanel';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { Users, Package, ShoppingCart, DollarSign, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Users, Package, ShoppingCart, DollarSign, AlertTriangle, ArrowRight, Store, TrendingDown } from 'lucide-react';
 import { ordersAPI } from '../api/orders';
 import { customersAPI } from '../api/customers';
 import { productsAPI } from '../api/products';
+import { merchantsAPI } from '../api/merchants';
 import { reportsAPI } from '../api/reports';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -29,6 +30,8 @@ const statusBadgeClass = (status) => {
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [recentCustomers, setRecentCustomers] = useState([]);
+  const [recentMerchants, setRecentMerchants] = useState([]);
   const [monthlyData, setMonthlyData] = useState([
     { month: 'Jan', sales: 0 }, { month: 'Feb', sales: 0 }, { month: 'Mar', sales: 0 },
     { month: 'Apr', sales: 0 }, { month: 'May', sales: 0 }, { month: 'Jun', sales: 0 },
@@ -38,31 +41,43 @@ export default function Dashboard() {
   useEffect(() => {
     Promise.all([
       ordersAPI.getAll({ page: 1, pageSize: 5 }),
-      customersAPI.getAll({ page: 1, pageSize: 1 }),
+      customersAPI.getAll({ page: 1, pageSize: 5 }),
       productsAPI.getAll({ page: 1, pageSize: 1 }),
+      productsAPI.getAll({ page: 1, pageSize: 1, stockStatus: 'low' }),
+      merchantsAPI.getAll(),
       reportsAPI.getMonthlySales({ year: 2026 })
-    ]).then(([ordersRes, customersRes, productsRes, monthlyRes]) => {
+    ]).then(([ordersRes, customersRes, productsRes, lowStockRes, merchantsRes, monthlyRes]) => {
       const ordersData = ordersRes.data.data || ordersRes.data;
       const orders = ordersData.items || ordersRes.data || [];
       setRecentOrders(Array.isArray(orders) ? orders.slice(0, 5) : []);
 
       const customersData = customersRes.data.data || customersRes.data;
+      const custItems = customersData.items || customersRes.data || [];
+      setRecentCustomers(Array.isArray(custItems) ? custItems.slice(0, 5) : []);
+
       const productsData = productsRes.data.data || productsRes.data;
+
+      const merchantsData = merchantsRes.data.data || merchantsRes.data;
+      const merchItems = Array.isArray(merchantsData) ? merchantsData : [];
+      setRecentMerchants(merchItems.slice(0, 5));
+
+      const lowStockData = lowStockRes.data.data || lowStockRes.data;
 
       const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
       setStats({
         totalCustomers: customersData.totalCount || 0,
+        totalMerchants: merchItems.length,
         totalProducts: productsData.totalCount || 0,
         totalOrders: ordersData.totalCount || orders.length,
         totalRevenue,
-        lowStockItems: 0,
+        lowStockItems: lowStockData.totalCount || lowStockData.items?.length || 0,
       });
 
       if (monthlyRes?.data) {
         setMonthlyData(monthlyRes.data);
       }
     }).catch(() => {
-      setStats({ totalCustomers: 0, totalProducts: 0, totalOrders: 0, totalRevenue: 0, lowStockItems: 0 });
+      setStats({ totalCustomers: 0, totalMerchants: 0, totalProducts: 0, totalOrders: 0, totalRevenue: 0, lowStockItems: 0 });
     }).finally(() => setLoading(false));
   }, []);
 
@@ -77,9 +92,14 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsPanel title="Total Customers" value={stats?.totalCustomers || 0} icon={Users} color="primary" />
-        <StatsPanel title="Total Products" value={stats?.totalProducts || 0} icon={Package} color="purple" />
-        <StatsPanel title="Total Orders" value={stats?.totalOrders || 0} icon={ShoppingCart} color="accent" />
+        <StatsPanel title="Total Merchants" value={stats?.totalMerchants || 0} icon={Store} color="purple" />
+        <StatsPanel title="Total Products" value={stats?.totalProducts || 0} icon={Package} color="accent" />
+        <StatsPanel title="Total Orders" value={stats?.totalOrders || 0} icon={ShoppingCart} color="secondary" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsPanel title="Revenue" value={formatCurrency(stats?.totalRevenue || 0)} icon={DollarSign} color="secondary" />
+        <StatsPanel title="Low Stock Items" value={stats?.lowStockItems || 0} icon={TrendingDown} color="accent" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -154,6 +174,62 @@ export default function Dashboard() {
           </table>
         </div>
       </DashboardPanel>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardPanel title="Recent Customers">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-3 font-medium text-gray-500">Name</th>
+                  <th className="text-left py-3 px-3 font-medium text-gray-500 hidden md:table-cell">Email</th>
+                  <th className="text-right py-3 px-3 font-medium text-gray-500 hidden sm:table-cell">Phone</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentCustomers.length === 0 ? (
+                  <tr><td colSpan={3} className="py-8 text-center text-gray-500">No recent customers</td></tr>
+                ) : (
+                  recentCustomers.map((customer) => (
+                    <tr key={customer.customerId} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                      <td className="py-3 px-3 font-medium">{customer.fullName}</td>
+                      <td className="py-3 px-3 text-gray-600 dark:text-gray-400 hidden md:table-cell">{customer.email}</td>
+                      <td className="py-3 px-3 text-right text-gray-500 hidden sm:table-cell">{customer.phone}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DashboardPanel>
+
+        <DashboardPanel title="Recent Merchants">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-3 font-medium text-gray-500">Company</th>
+                  <th className="text-left py-3 px-3 font-medium text-gray-500 hidden md:table-cell">Email</th>
+                  <th className="text-left py-3 px-3 font-medium text-gray-500 hidden sm:table-cell">Country</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentMerchants.length === 0 ? (
+                  <tr><td colSpan={3} className="py-8 text-center text-gray-500">No recent merchants</td></tr>
+                ) : (
+                  recentMerchants.map((merchant) => (
+                    <tr key={merchant.merchantId} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                      <td className="py-3 px-3 font-medium">{merchant.companyName}</td>
+                      <td className="py-3 px-3 text-gray-600 dark:text-gray-400 hidden md:table-cell">{merchant.email}</td>
+                      <td className="py-3 px-3 text-gray-500 hidden sm:table-cell">{merchant.countryName}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DashboardPanel>
+      </div>
     </div>
   );
 }

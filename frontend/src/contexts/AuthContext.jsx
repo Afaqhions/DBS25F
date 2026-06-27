@@ -64,18 +64,13 @@ export function AuthProvider({ children }) {
     return response;
   }, []);
 
-  const register = useCallback(async (data) => {
-    const response = await authAPI.register(data);
-    return response;
-  }, []);
-
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     dispatch({ type: 'LOGOUT' });
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, dispatch }}>
+    <AuthContext.Provider value={{ ...state, login, logout, dispatch }}>
       {children}
     </AuthContext.Provider>
   );

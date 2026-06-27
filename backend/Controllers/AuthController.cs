@@ -14,13 +14,6 @@ namespace backend.Controllers
 
         public AuthController(IUserService userService) => _userService = userService;
 
-        [HttpPost("register")]
-        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterDto dto)
-        {
-            var result = await _userService.RegisterAsync(dto);
-            return Ok(ApiResponse<AuthResponseDto>.Ok(result, "Registration successful."));
-        }
-
         [HttpPost("login")]
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginDto dto)
         {
